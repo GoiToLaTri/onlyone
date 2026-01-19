@@ -1,0 +1,158 @@
+services:
+  identity-service:
+    image: identity-service:0.0.1
+    container_name: identity-service
+    build: ./services/identity-service
+    env_file:
+      - ./services/identity-service/.env.prod
+    networks:
+      - onlyone
+    depends_on:
+      onlyone-mysql:
+        condition: service_healthy  # Chỉ chạy khi MySQL đã thực sự sẵn sàng
+      onlyone-redis:
+        condition: service_started
+      onlyone-rabbitmq:
+        condition: service_started
+
+  user-service:
+    image: user-service:0.0.1
+    container_name: user-service
+    build: ./services/user-service
+    env_file:
+      - ./services/user-service/.env.prod
+    networks:
+      - onlyone
+    depends_on:
+      onlyone-mysql:
+        condition: service_healthy  # Chỉ chạy khi MySQL đã thực sự sẵn sàng
+      onlyone-redis:
+        condition: service_started
+      onlyone-rabbitmq:
+        condition: service_started
+
+  onlyone-mysql:
+    image: mysql:8.0.44-debian
+    container_name: onlyone-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=0000
+      - MYSQL_USER=onlyone
+      - MYSQL_PASSWORD=onlyone
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+      - identity_service_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    networks:
+      - onlyone
+
+  onlyone-mongo:
+    image: mongo:6.0.7
+    container_name: onlyone-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=0000
+    volumes:
+      - onlyone-mongo-data:/data/db
+    networks:
+      - onlyone
+
+  onlyone-redis:
+    image: redis:8.4.0
+    container_name: onlyone-redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=0000
+    command: redis-server --requirepass 0000 --appendonly yes
+    volumes:
+      - onlyone-redis-data:/data
+    networks:
+      - onlyone
+
+  redisinsight:
+    image: redis/redisinsight:2.70
+    container_name: redisinsight
+    ports:
+      - "5540:5540"
+    depends_on:
+      - onlyone-redis
+
+  onlyone-rabbitmq:
+    image: rabbitmq:4.2.2-management-alpine
+    container_name: onlyone-rabbitmq
+    ports:
+      - "5672:5672" # Port for AMQP protocol
+      - "15672:15672" # Port for Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=0000
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_log:/var/log/rabbitmq
+    networks:
+      - onlyone
+
+  nginx-proxy:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "8080:80"
+    depends_on:
+      - identity-service
+    volumes:
+      - ./nginx-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - onlyone
+
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+  #   container_name: elasticsearch
+  #   environment:
+  #     - node.name=es-node01
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false # Tắt bảo mật 
+  #     - bootstrap.memory_lock=true
+  #     - "ES_JAVA_OPTS=-Xms2g -Xmx2g" # Cấp 2GB RAM cho ES
+  #   ports:
+  #     - "9200:9200"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - es_data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - onlyone
+  
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.10.2
+  #   container_name: kibana
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   ports:
+  #     - "5601:5601"
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - onlyone
+
+volumes:
+  identity_service_mysql_data:
+  onlyone-mongo-data:
+  onlyone-redis-data:
+  rabbitmq_data:
+  rabbitmq_log:
+  es_data:
+
+networks:
+  onlyone:
+    driver: bridge

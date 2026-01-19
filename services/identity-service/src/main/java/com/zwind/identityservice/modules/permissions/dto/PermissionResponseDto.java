@@ -1,0 +1,14 @@
+package com.zwind.identityservice.modules.permissions.dto;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class PermissionResponseDto {
+    String name;
+    String description;
+}

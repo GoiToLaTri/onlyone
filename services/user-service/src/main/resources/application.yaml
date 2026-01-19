@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: user-service
+  profiles:
+    active: dev
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG
+
+listener:
+  simple:
+    retry:
+      enabled: true
+      max-attempts: 3            # Thử lại tối đa 3 lần
+      initial-interval: 2000ms   # Lần đầu thử lại sau 2s
+      multiplier: 2.0            # Các lần sau giãn cách gấp đôi (2s -> 4s -> 8s)
+    acknowledge-mode: auto       # Tự động Ack nếu không có Exception

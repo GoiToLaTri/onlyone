@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package authentication;
+
+option java_package = "com.zwind.grpc.authentication";
+option java_multiple_files = true;
+option java_outer_classname = "AuthenticationProto";
+
+service AuthenticationService {
+  rpc introspect(IntrospectRequest) returns (IntrospectResponse);
+}
+
+message IntrospectRequest {
+  string token = 1;
+}
+
+message IntrospectResponse {
+  string token = 2;
+}

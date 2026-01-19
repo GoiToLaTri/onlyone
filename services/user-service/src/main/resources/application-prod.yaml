@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/user_service}
+    driverClassName: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+    username: ${DB_USERNAME:onlyone}
+    password: ${DB_PASSWORD:onlyone}
+    hikari:
+      connection-timeout: 30000
+      nitialization-fail-timeout: -1
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:default}
+      password: "${REDIS_PASSWORD:0000}"
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:admin}
+    password: "${RABBITMQ_PASSWORD:admin}"
+
+server:
+  port: ${PORT:8001}
+  servlet:
+    context-path: /user-service
