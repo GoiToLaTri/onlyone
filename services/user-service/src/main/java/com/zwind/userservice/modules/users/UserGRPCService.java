@@ -17,6 +17,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Slf4j
@@ -29,12 +31,32 @@ public class UserGRPCService extends UserServiceGrpc.UserServiceImplBase {
     @Override
     public void findByPublicId(UserRequest request, StreamObserver<UserResponse> responseObserver) {
         String publicId = request.getPublicId();
+
+        if(publicId.trim().isEmpty()) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT.withDescription("Public id invalid")
+                            .asRuntimeException()
+            );
+            return;
+        }
+
         UserResponseDto user = userService.findByPublicId(publicId);
+
+        LocalDateTime ldt = user.getCreatedAt();
+
+        Instant instant = ldt.atZone(ZoneId.systemDefault()).toInstant();
+
+        Timestamp createdAt = Timestamp.newBuilder()
+                .setSeconds(instant.getEpochSecond())
+                .setNanos(instant.getNano())
+                .build();
+
 
         UserResponse response = UserResponse.newBuilder()
                 .setPublicId(user.getPublicId())
                 .setName(user.getName())
                 .setEmail(user.getEmail())
+                .setCreatedAt(createdAt)
                 .build();
 
         responseObserver.onNext(response);
@@ -46,7 +68,6 @@ public class UserGRPCService extends UserServiceGrpc.UserServiceImplBase {
     public void profile(Empty request, StreamObserver<UserResponse> responseObserver) {
         GrpcAuthenticationToken context = GrpcSecurityContext.getCurrentAuth();
         UserResponseDto user = userService.findByAccountId(context.getUserId());
-        log.info(":::: user {}", user);
         if (user == null) {
             responseObserver.onError(
                     Status.NOT_FOUND

@@ -22,7 +22,7 @@ public class JwtTokenProvider {
     private String SECRET_KEY;
 
     public String generateToken(Account account) {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .issuer("onlyone.zwind.com")

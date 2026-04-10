@@ -26,7 +26,7 @@ jwt:
   refreshable-duration: 36000 # in seconds
 
 server:
-  port: 6000
+  port: 8000
   servlet:
     context-path: /identity-service
 

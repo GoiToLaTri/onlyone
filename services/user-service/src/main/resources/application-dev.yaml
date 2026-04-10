@@ -25,7 +25,6 @@ jwt:
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
 
-
 server:
   port: 6001
   servlet:

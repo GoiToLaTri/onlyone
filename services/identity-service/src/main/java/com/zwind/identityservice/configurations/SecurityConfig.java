@@ -45,7 +45,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
         httpSecurity.authorizeHttpRequests(request
                 -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT).permitAll()
-                        .requestMatchers(HttpMethod.GET, SWAGGER_ENDPOINT).permitAll()
+                        .requestMatchers(SWAGGER_ENDPOINT).permitAll()
                 .anyRequest().authenticated())
                 .exceptionHandling(ex
                         -> ex.authenticationEntryPoint(new SessionAuthenticationEntryPoint()))

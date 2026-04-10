@@ -34,7 +34,7 @@ public class JwtAuthenticationProvider implements GrpcAuthenticationProvider {
 
         Claims claims = decodeToken(token);
         if(claims == null) return GrpcAuthenticationToken.unauthenticated();
-        log.info(":::: claims {}",claims);
+        log.info(":::: claims {}", claims);
         String scope = claims.get("scope", String.class);
         List<String> scopes = scope == null
                 ? List.of()

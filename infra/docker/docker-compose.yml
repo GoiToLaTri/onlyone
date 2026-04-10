@@ -1,39 +1,59 @@
 services:
-  identity-service:
-    image: identity-service:0.0.1
-    container_name: identity-service
-    build: ./services/identity-service
-    env_file:
-      - ./services/identity-service/.env.prod
-    networks:
-      - onlyone
-    depends_on:
-      onlyone-mysql:
-        condition: service_healthy  # Chỉ chạy khi MySQL đã thực sự sẵn sàng
-      onlyone-redis:
-        condition: service_started
-      onlyone-rabbitmq:
-        condition: service_started
+  # gateway:
+  #   image: gateway:0.0.1
+  #   container_name: gateway
+  #   build: 
+  #     context: .
+  #     dockerfile: gateway/Dockerfile
+  #   env_file:
+  #     - ./gateway/.env.prod
+  #   networks:
+  #     - onlyone
+  #   depends_on:
+  #     identity-service:
+  #       condition: service_started
+  #     user-service:
+  #       condition: service_started
 
-  user-service:
-    image: user-service:0.0.1
-    container_name: user-service
-    build: ./services/user-service
-    env_file:
-      - ./services/user-service/.env.prod
-    networks:
-      - onlyone
-    depends_on:
-      onlyone-mysql:
-        condition: service_healthy  # Chỉ chạy khi MySQL đã thực sự sẵn sàng
-      onlyone-redis:
-        condition: service_started
-      onlyone-rabbitmq:
-        condition: service_started
+  # identity-service:
+  #   image: identity-service:0.0.1
+  #   container_name: identity-service
+  #   build:
+  #     context: .
+  #     dockerfile: services/identity-service/Dockerfile
+  #   env_file:
+  #     - ./services/identity-service/.env.prod
+  #   networks:
+  #     - onlyone
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy  # Chỉ chạy khi MySQL đã thực sự sẵn sàng
+  #     redis:
+  #       condition: service_started
+  #     rabbitmq:
+  #       condition: service_started
 
-  onlyone-mysql:
+  # user-service:
+  #   image: user-service:0.0.1
+  #   container_name: user-service
+  #   build:
+  #     context: .
+  #     dockerfile: services/user-service/Dockerfile
+  #   env_file:
+  #     - ./services/user-service/.env.prod
+  #   networks:
+  #     - onlyone
+  #   depends_on:
+  #     mysql:
+  #       condition: service_healthy  # Chỉ chạy khi MySQL đã thực sự sẵn sàng
+  #     redis:
+  #       condition: service_started
+  #     rabbitmq:
+  #       condition: service_started
+
+  mysql:
     image: mysql:8.0.44-debian
-    container_name: onlyone-mysql
+    container_name: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=0000
       - MYSQL_USER=onlyone
@@ -52,29 +72,29 @@ services:
     networks:
       - onlyone
 
-  onlyone-mongo:
+  mongo:
     image: mongo:6.0.7
-    container_name: onlyone-mongo
+    container_name: mongo
     ports:
       - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=0000
     volumes:
-      - onlyone-mongo-data:/data/db
+      - mongo-data:/data/db
     networks:
       - onlyone
 
-  onlyone-redis:
+  redis:
     image: redis:8.4.0
-    container_name: onlyone-redis
+    container_name: redis
     ports:
       - "6379:6379"
     environment:
       - REDIS_PASSWORD=0000
     command: redis-server --requirepass 0000 --appendonly yes
     volumes:
-      - onlyone-redis-data:/data
+      - redis-data:/data
     networks:
       - onlyone
 
@@ -84,11 +104,11 @@ services:
     ports:
       - "5540:5540"
     depends_on:
-      - onlyone-redis
+      - redis
 
-  onlyone-rabbitmq:
+  rabbitmq:
     image: rabbitmq:4.2.2-management-alpine
-    container_name: onlyone-rabbitmq
+    container_name: rabbitmq
     ports:
       - "5672:5672" # Port for AMQP protocol
       - "15672:15672" # Port for Management UI
@@ -101,15 +121,19 @@ services:
     networks:
       - onlyone
 
-  nginx-proxy:
+  nginx:
     image: nginx:latest
-    container_name: nginx-proxy
+    container_name: nginx
     ports:
       - "8080:80"
-    depends_on:
-      - identity-service
+    # depends_on:
+    #   - identity-service
+    #   - gateway
     volumes:
-      - ./nginx-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - ../nginx/lua:/etc/nginx/lua:ro
+      - ../../certs/private.pem:/usr/local/openresty/nginx/certs/private.pem:ro
+      - ../../certs/public.pem:/usr/local/openresty/nginx/certs/public.pem:ro
     networks:
       - onlyone
 
@@ -147,11 +171,11 @@ services:
 
 volumes:
   identity_service_mysql_data:
-  onlyone-mongo-data:
-  onlyone-redis-data:
+  mongo-data:
+  redis-data:
   rabbitmq_data:
   rabbitmq_log:
-  es_data:
+  # es_data:
 
 networks:
   onlyone:

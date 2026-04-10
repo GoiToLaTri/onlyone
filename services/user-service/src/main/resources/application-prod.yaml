@@ -23,7 +23,17 @@ spring:
     username: ${RABBITMQ_USERNAME:admin}
     password: "${RABBITMQ_PASSWORD:admin}"
 
+jwt:
+  signerKey: ${JWT_SECRET_KEY:onlyone}
+  valid-duration: 3600 # in second
+  refreshable-duration: 36000 # in seconds
+
 server:
   port: ${PORT:8001}
   servlet:
     context-path: /user-service
+
+grpc:
+  server:
+    port: 9090
+    reflection-data-cache-enabled: false

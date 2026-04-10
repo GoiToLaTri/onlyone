@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
+import { appConstantConfig } from 'src/common/configs/appconstant.config';
 
 @Global()
 @Module({
@@ -17,7 +18,7 @@ import { join } from 'path';
             '..',
             'proto/identity/authentication.proto',
           ),
-          url: 'localhost:9091',
+          url: appConstantConfig.getGrpcIdentityServiceUri(),
           loader: {
             keepCase: true,
             longs: String,

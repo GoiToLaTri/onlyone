@@ -3,6 +3,7 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
+import { appConstantConfig } from 'src/common/configs/appconstant.config';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { join } from 'path';
             '..',
             'proto/user/user-service.proto',
           ),
-          url: 'localhost:9090',
+          url: appConstantConfig.getGrpcUserServiceUri(),
         },
       },
     ]),

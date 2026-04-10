@@ -3,12 +3,16 @@ package com.zwind.userservice.interceptors;
 import com.zwind.userservice.exceptions.AppException;
 import io.grpc.*;
 import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 @GrpcGlobalServerInterceptor
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GrpcGlobalExceptionInterceptor implements ServerInterceptor {
+    private static final Logger log = LoggerFactory.getLogger(GrpcGlobalExceptionInterceptor.class);
+
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
             ServerCall<ReqT, RespT> call,
@@ -35,6 +39,7 @@ public class GrpcGlobalExceptionInterceptor implements ServerInterceptor {
     }
 
     private void close(ServerCall<?, ?> call, Throwable t) {
+        log.error(t.getMessage());
         Status status = mapToStatus(t);
         call.close(status, new Metadata());
     }
