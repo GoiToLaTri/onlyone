@@ -48,12 +48,12 @@ public class RedisAuthenticationProvider implements GrpcAuthenticationProvider {
         AccountResponseDto accountResponseDto;
 
         accountResponseDto = redisService.getKey(
-                "AID_" + sessionStage.getUserId(),
+                "AID_" + sessionStage.getAccountId(),
                 AccountResponseDto.class);
 
         if(accountResponseDto == null) {
             accountResponseDto = accountMapper.toAccountResponse(
-                    accountRepository.findByIdWithRoles(sessionStage.getUserId())
+                    accountRepository.findByIdWithRoles(sessionStage.getAccountId())
                             .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS))
             );
         }
@@ -62,7 +62,7 @@ public class RedisAuthenticationProvider implements GrpcAuthenticationProvider {
                 .map(RoleResponseDto::getName)
                 .toList();
 
-       return GrpcAuthenticationToken.authenticated(sessionStage.getUserId(),
+       return GrpcAuthenticationToken.authenticated(sessionStage.getAccountId(),
                null, roles);
     }
 }

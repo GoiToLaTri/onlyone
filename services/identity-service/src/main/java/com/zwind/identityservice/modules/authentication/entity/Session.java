@@ -29,7 +29,7 @@ public class Session {
 
     @Column(unique = true, nullable = false)
     String accessToken;
-    String userId;
+    String accountId;
 
     @Enumerated(EnumType.STRING)
     AuthLevel authLevel;

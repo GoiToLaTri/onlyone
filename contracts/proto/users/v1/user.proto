@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 package user;
 
 // 3. Cấu hình riêng cho Java (Cực kỳ quan trọng để Spring Boot sinh code đẹp)
-option java_package = "com.zwind.grpc.user"; // Tên package trong code Java
+option java_package = "com.zwind.grpc.contracts.user"; // Tên package trong code Java
 option java_multiple_files = true;  // Chia nhỏ các class ra nhiều file cho dễ đọc
 option java_outer_classname = "UserProto";
 

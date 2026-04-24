@@ -12,5 +12,5 @@ import lombok.experimental.FieldDefaults;
 public class CreateProfileResponse {
     String correlationId;
     ProfileStatus status;
-    String userId;
+    String accountId;
 }

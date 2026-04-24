@@ -56,7 +56,7 @@ local method = ngx.req.get_method()
 
 local public_routes = {
     -- Identity service
-    "^/identityservice/authentication/login",
+    "^/identityservice/authentication/token",
     "^/identityservice/authentication/refreshtoken",
     "^/identityservice/api",
 
@@ -115,7 +115,7 @@ if not ok then
 end
 
 -- Lấy session
-local session, err = red:get(hash_token(token))
+local session, err = red:get("SID_" .. hash_token(token))
 if err then
     ngx.log(ngx.ERR, err)
     return ngx.exit(500)
@@ -127,7 +127,7 @@ end
 session = cjson.decode(session)
 
 -- Lấy account từ session Id
-local account, err = red:get(session.accountId)
+local account, err = red:get("AID_" .. session.accountId)
 if err then
     ngx.log(ngx.ERR, err)
     return ngx.exit(500)

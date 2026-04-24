@@ -1,11 +1,9 @@
 package com.zwind.identityservice.modules.authentication;
 
-import com.zwind.identityservice.constant.RabbitMQConstantConfig;
 import com.zwind.identityservice.enums.AuthLevel;
 import com.zwind.identityservice.enums.SessionStatus;
 import com.zwind.identityservice.exception.AppError;
 import com.zwind.identityservice.exception.AppException;
-import com.zwind.identityservice.event.producer.RabbitMQProducer;
 import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
 import com.zwind.identityservice.modules.accounts.entity.Account;
 import com.zwind.identityservice.modules.accounts.mapper.AccountMapper;
@@ -16,6 +14,7 @@ import com.zwind.identityservice.modules.authentication.mapper.SessionMapper;
 import com.zwind.identityservice.modules.authentication.repository.SessionRepository;
 import com.zwind.identityservice.modules.redis.RedisService;
 import com.zwind.identityservice.provider.JwtTokenProvider;
+import com.zwind.identityservice.utils.TokenHashUtil;
 import com.zwind.identityservice.validation.SessionValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
@@ -48,8 +47,6 @@ public class AuthenticationService {
     SessionRepository sessionRepository;
     SessionValidator sessionValidator;
     SessionMapper sessionMapper;
-    RabbitMQProducer rabbitMQProducer;
-    RabbitMQConstantConfig rabbitMQConstantConfig;
     JwtTokenProvider jwtTokenProvider;
 
     public AuthenticationResponseDto authenticate(
@@ -66,16 +63,17 @@ public class AuthenticationService {
         SessionStage session = createSession(account.getId(), request);
         AuthLevel authLevel = AuthLevel.PASSWORD;
         session.setAuthLevel(authLevel);
-        session.setUserId(account.getId());
+        session.setAccountId(account.getId());
 
         String token = generateOpaqueToken();
+        String tokenHash = TokenHashUtil.sha256(token);
 
         String refreshToken = signRefreshToken(session, token,null);
 
         AccountResponseDto accountResponseDto = accountMapper.toAccountResponse(account);
 
-        CompletableFuture.runAsync(()->redisService.setKey("SID_" + token, session, 1, TimeUnit.HOURS));
-        CompletableFuture.runAsync(()->redisService.setKey("AID_" + session.getUserId(),
+        CompletableFuture.runAsync(()->redisService.setKey("SID_" + tokenHash, session, 1, TimeUnit.HOURS));
+        CompletableFuture.runAsync(()->redisService.setKey("AID_" + session.getAccountId(),
                 accountResponseDto,15, TimeUnit.MINUTES));
 
         return AuthenticationResponseDto.builder()
@@ -98,8 +96,8 @@ public class AuthenticationService {
 //        Map<String, Object> payload = new HashMap<>();
 
         if(currentSession.isConsumed()) {
-            revokeAllUserSessions(currentSession.getUserId());
-//            payload.put("userId", currentSession.getUserId());
+            revokeAllUserSessions(currentSession.getAccountId());
+//            payload.put("userId", currentSession.getAccountId());
 //            payload.put("message", "You have been logged out for security reasons");
 //            payload.put("timestamp", LocalDateTime.now().toString());
 //            rabbitMQProducer.sendMessage(rabbitMQConstantConfig
@@ -112,7 +110,7 @@ public class AuthenticationService {
         currentSession.setConsumed(true);
         sessionRepository.save(currentSession);
 
-        SessionStage newSession = createSession(currentSession.getUserId(), request);
+        SessionStage newSession = createSession(currentSession.getAccountId(), request);
         String token = generateOpaqueToken();
 
         if(currentSession.getRiskScore() > 50)
@@ -120,7 +118,7 @@ public class AuthenticationService {
         log.info(String.valueOf(AuthLevel.valueOf(currentSession.getAuthLevel().name())));
         newSession.setAuthLevel(AuthLevel.valueOf(currentSession.getAuthLevel().name()));
         String refreshToken = signRefreshToken(newSession, token, currentSession.getExpireTime());
-        newSession.setUserId(currentSession.getUserId());
+        newSession.setAccountId(currentSession.getAccountId());
 
         redisService.deleteKey("SID_" + requestDto.getToken());
         redisService.setKey("SID_" + token, newSession, 1, TimeUnit.HOURS);
@@ -135,8 +133,9 @@ public class AuthenticationService {
     @PreAuthorize("isAuthenticated()")
     public List<SessionResponse> findAllActiveToken(){
         var context = SecurityContextHolder.getContext();
+        log.info(":::: context: {}", context);
         String id = Objects.requireNonNull(context.getAuthentication()).getName();
-        return sessionRepository.findAllByUserIdAndIsConsumedAndStatus(
+        return sessionRepository.findAllByAccountIdAndIsConsumedAndStatus(
                 id, false, SessionStatus.ACTIVE).stream()
                 .map(session -> SessionResponse.builder()
                 .id(session.getId())
@@ -183,11 +182,11 @@ public class AuthenticationService {
         return null;
     }
 
-    private SessionStage createSession(String userId, HttpServletRequest request) {
+    private SessionStage createSession(String accountId, HttpServletRequest request) {
         SessionStage.DeviceDetails deviceDetails = getDeviceDetail(request);
 
         return SessionStage.builder()
-                .userId(userId)
+                .accountId(accountId)
                 .deviceDetails(deviceDetails)
                 .status(SessionStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
@@ -249,16 +248,16 @@ public class AuthenticationService {
         return xfHeader.split(",")[0];
     }
 
-    private void revokeAllUserSessions(String userId){
+    private void revokeAllUserSessions(String accountId){
         List<Session> activeSessions = sessionRepository
-                .findAllByUserIdAndStatus(userId, SessionStatus.ACTIVE);
+                .findAllByAccountIdAndStatus(accountId, SessionStatus.ACTIVE);
 
         if(!activeSessions.isEmpty()){
             List<String> redisKeys = activeSessions.stream()
                     .map(s -> "SID_" + s.getAccessToken())
                             .toList();
             redisService.deleteMultipleKey(redisKeys);
-            sessionRepository.updateStatusByUserId(userId, SessionStatus.REVOKED);
+            sessionRepository.updateStatusByAccountId(accountId, SessionStatus.REVOKED);
         }
     }
 
@@ -268,7 +267,7 @@ public class AuthenticationService {
         String token = generateOpaqueToken();
 
         Session session = Session.builder()
-                .userId(sessionStage.getUserId())
+                .accountId(sessionStage.getAccountId())
                 .authLevel(sessionStage.getAuthLevel())
                 .riskScore(sessionStage.getRiskScore())
                 .deviceDetails(sessionStage.getDeviceDetails())

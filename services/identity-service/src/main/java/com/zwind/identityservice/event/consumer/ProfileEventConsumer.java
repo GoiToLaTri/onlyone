@@ -31,7 +31,7 @@ public class ProfileEventConsumer {
             log.info(":::: timestamp {}", payload.getTimestamp());
 
             log.info(":::: data {}", payload.getData());
-            Account account = accountRepository.findById(payload.getData().getUserId())
+            Account account = accountRepository.findById(payload.getData().getAccountId())
                     .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS));
 
             if(ProfileStatus.SUCCESS.equals(payload.getData().getStatus()))

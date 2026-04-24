@@ -55,7 +55,7 @@ public class RoleService {
         String currentAdminID = Objects.requireNonNull(SecurityContextHolder.getContext()
                 .getAuthentication()).getName();
 
-        Account account = accountRepository.findById(requestDto.getUserId())
+        Account account = accountRepository.findById(requestDto.getAccountId())
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS));
 
         if(currentAdminID.equals(account.getId()))
@@ -84,7 +84,7 @@ public class RoleService {
         String currentAdminID = Objects.requireNonNull(SecurityContextHolder.getContext()
                 .getAuthentication()).getName();
 
-        Account account = accountRepository.findById(requestDto.getUserId())
+        Account account = accountRepository.findById(requestDto.getAccountId())
                 .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS));
 
         if(currentAdminID.equals(account.getId()))

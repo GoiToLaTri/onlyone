@@ -13,6 +13,6 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class RevokeRoleRequestDto {
     @NotBlank(message = "UID_REQUIRED")
-    String userId;
+    String accountId;
     Set<String> roles;
 }

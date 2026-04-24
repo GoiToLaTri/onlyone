@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SessionStage {
-    String userId;
+    String accountId;
     AuthLevel authLevel;
     DeviceDetails deviceDetails;
     int riskScore;

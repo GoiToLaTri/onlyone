@@ -79,16 +79,16 @@ public class SessionAuthFilter extends OncePerRequestFilter {
             AccountResponseDto accountResponseDto;
 
             accountResponseDto = redisService.getKey(
-                    "AID_" + sessionStage.getUserId(),
+                    "AID_" + sessionStage.getAccountId(),
                     AccountResponseDto.class);
 
             if(accountResponseDto == null) {
                 accountResponseDto = accountMapper.toAccountResponse(
-                        accountRepository.findByIdWithRoles(sessionStage.getUserId())
+                        accountRepository.findByIdWithRoles(sessionStage.getAccountId())
                                 .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS))
                 );
 
-                redisService.setKey("AID_" + sessionStage.getUserId(),
+                redisService.setKey("AID_" + sessionStage.getAccountId(),
                         accountResponseDto, 15, TimeUnit.MINUTES);
             }
 
@@ -102,7 +102,7 @@ public class SessionAuthFilter extends OncePerRequestFilter {
                 authorities.add(new SimpleGrantedAuthority("ROLE_ANONYMOUS"));
 
             SessionPrincipal principal = SessionPrincipal.builder()
-                    .userId(sessionStage.getUserId())
+                    .accountId(sessionStage.getAccountId())
                     .authLevel(sessionStage.getAuthLevel())
                     .build();
 

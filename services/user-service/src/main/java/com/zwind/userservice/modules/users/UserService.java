@@ -22,7 +22,7 @@ public class UserService {
     public UserResponseDto create(CreateProfileDto createProfileDto) {
         User user = userMapper.toUser(createProfileDto);
         User result = userRepository.save(user);
-
+    
         return userMapper.toUserResponse(result);
     }
 

@@ -45,6 +45,6 @@ public class SessionAuthentication extends AbstractAuthenticationToken {
     @Override
     @NonNull
     public String getName() {
-        return sessionPrincipal.getUserId();
+        return sessionPrincipal.getAccountId();
     }
 }

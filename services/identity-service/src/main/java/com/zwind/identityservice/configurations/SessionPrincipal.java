@@ -14,6 +14,6 @@ import java.io.Serializable;
 @Getter
 @Builder
 public class SessionPrincipal implements Serializable {
-   String userId;
+   String accountId;
    AuthLevel authLevel;
 }

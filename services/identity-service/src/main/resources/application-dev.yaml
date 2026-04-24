@@ -24,6 +24,7 @@ jwt:
   signerKey: "WK#1{LipcX!D2y&F{ietW34x$(d,/i2:9UB)eEp*t}gJmUN$h0,YDm98h@14XM3tqw#bi:VaLaBJFRFW#V9*NPjwc]b&fx-:QbL+-L:P;LY#5JG4qzZ[H{:Ljh)DdupmpirXF=]Rn,/j/Fw74q&QR_AwSS}ypXpBhQ#7h6yS?+r4U5tw8B_D5R&Zm!0Kn}rzC+%WFUy#ch/qS(Ld!W=tT%tQ-.}$cQiV4.#CKZ{.b,uQtg8D,+9j}a?VF$bUMwnm"
   valid-duration: 3600 # in second
   refreshable-duration: 36000 # in seconds
+  public-key-path: '../../certs/public.pem'
 
 server:
   port: 8000

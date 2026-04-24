@@ -1,8 +1,12 @@
 HELP.md
 target/
+bin/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+
+# Ignore the symlink to proto contracts
+src/main/resources/proto
 
 ### STS ###
 .apt_generated

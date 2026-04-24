@@ -1,0 +1,4 @@
+target/
+
+# Ignore the symlink to proto contracts
+src/main/resources/proto

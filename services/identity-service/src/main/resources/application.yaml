@@ -3,6 +3,9 @@ spring:
     name: identity-service
   profiles:
     active: dev
+  output:
+    ansi:
+      enabled: always
 
 logging:
   level:

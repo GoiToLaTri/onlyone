@@ -1,11 +1,12 @@
 package com.zwind.identityservice.modules.authentication;
 
 
-import com.zwind.grpc.authentication.AuthenticationServiceGrpc;
-import com.zwind.grpc.authentication.IntrospectRequest;
-import com.zwind.grpc.authentication.IntrospectResponse;
+import com.zwind.grpc.contracts.authentication.AuthenticationServiceGrpc;
+import com.zwind.grpc.contracts.authentication.IntrospectRequest;
+import com.zwind.grpc.contracts.authentication.IntrospectResponse;
 import com.zwind.grpc_security_starter.interceptors.GrpcSecure;
 import com.zwind.grpc_security_starter.interceptors.GrpcSecurityContext;
+
 import io.grpc.stub.StreamObserver;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class AuthenticationGRPCService extends
     @GrpcSecure
     public void introspect(IntrospectRequest request,
                            StreamObserver<IntrospectResponse> responseObserver) {
-        String accountId = GrpcSecurityContext.getCurrentAuth().getUserId();
+        String accountId = GrpcSecurityContext.getCurrentAuth().getAccountId();
         String token = authenticationService.introspect(accountId);
         IntrospectResponse response = IntrospectResponse.newBuilder()
                 .setToken(token)

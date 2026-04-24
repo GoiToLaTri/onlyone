@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<maven.compiler.source>25</maven.compiler.source>
+    	<maven.compiler.target>25</maven.compiler.target>
 		<org.mapstruct.version>1.6.3</org.mapstruct.version>
 		<netty.version>4.1.130.Final</netty.version>
 		<grpc.version>1.75.0</grpc.version>
@@ -124,10 +126,22 @@
 		</dependency>
 
 		<!-- Source: https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java</artifactId>
 			<version>4.33.0</version>
+		</dependency> -->
+
+		<dependency>
+			<groupId>com.zwind</groupId>
+			<artifactId>onlyone-grpc-contracts</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.zwind</groupId>
+			<artifactId>jwt-security-starter</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -190,6 +204,7 @@
 				<version>1.7.1</version>
 			</extension>
 		</extensions>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -227,11 +242,15 @@
 					</excludes>
 				</configuration>
 			</plugin>
-			<plugin>
+			<!-- <plugin>
 				<groupId>org.xolstice.maven.plugins</groupId>
 				<artifactId>protobuf-maven-plugin</artifactId>
+				<version>0.6.1</version>
 				<configuration>
 					<protocArtifact>com.google.protobuf:protoc:3.22.2:exe:${os.detected.classifier}</protocArtifact>
+					<protoSourceRoot>${project.basedir}/src/main/resources/proto</protoSourceRoot>
+					<outputDirectory>${project.build.directory}/generated-sources/protobuf/java</outputDirectory>
+					<clearOutputDirectory>false</clearOutputDirectory>
 					<pluginId>grpc-java</pluginId>
 					<pluginArtifact>io.grpc:protoc-gen-grpc-java:1.54.0:exe:${os.detected.classifier}</pluginArtifact>
 				</configuration>
@@ -243,7 +262,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin> -->
 		</plugins>
 	</build>
 

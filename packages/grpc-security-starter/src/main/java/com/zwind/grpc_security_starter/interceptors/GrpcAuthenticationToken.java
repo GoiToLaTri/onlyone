@@ -9,13 +9,13 @@ import java.util.List;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class GrpcAuthenticationToken {
-    String userId;
+    String accountId;
     String deviceId;
     List<String> scopes;
     boolean authenticated;
 
-    private GrpcAuthenticationToken(String userId, String deviceId, List<String> scopes, boolean authenticated) {
-        this.userId = userId;
+    private GrpcAuthenticationToken(String accountId, String deviceId, List<String> scopes, boolean authenticated) {
+        this.accountId = accountId;
         this.deviceId = deviceId;
         this.scopes = scopes;
         this.authenticated = authenticated;
@@ -32,7 +32,7 @@ public class GrpcAuthenticationToken {
     /**
      * Tạo đối tượng sau khi đã xác thực THÀNH CÔNG từ Redis/DB
      */
-    public static GrpcAuthenticationToken authenticated(String userId, String deviceId, List<String> scopes) {
-        return new GrpcAuthenticationToken(userId, deviceId, scopes, true);
+    public static GrpcAuthenticationToken authenticated(String accountId, String deviceId, List<String> scopes) {
+        return new GrpcAuthenticationToken(accountId, deviceId, scopes, true);
     }
 }

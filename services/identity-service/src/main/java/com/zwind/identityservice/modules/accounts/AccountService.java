@@ -51,9 +51,8 @@ public class AccountService {
         if(exists != null) {
             if(AccountStatus.ACTIVE.equals(exists.getAccountStatus()))
                 throw new AppException(AppError.USER_EXISTS);
-            else if (AccountStatus.PENDING.equals(exists.getAccountStatus())) {
+            else if (AccountStatus.PENDING.equals(exists.getAccountStatus()))
                 throw new AppException(AppError.USER_PENDING);
-            }
         }
 
         Account account = accountMapper.toAccount(createAccountDto);

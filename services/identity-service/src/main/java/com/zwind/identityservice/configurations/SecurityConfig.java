@@ -1,5 +1,6 @@
 package com.zwind.identityservice.configurations;
 
+import com.zwind.identityservice.components.JwtAuthFilter;
 import com.zwind.identityservice.components.SessionAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,6 +25,7 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 public class SecurityConfig {
     private final SessionAuthFilter sessionAuthFilter;
+    private final JwtAuthFilter jwtAuthFilter;
 
     private static final String[] PUBLIC_ENDPOINT = {
             "/accounts",
@@ -37,8 +40,9 @@ public class SecurityConfig {
             "/v3/api-docs/**"
     };
 
-    SecurityConfig(SessionAuthFilter sessionAuthFilter){
+    SecurityConfig(SessionAuthFilter sessionAuthFilter, JwtAuthFilter jwtAuthFilter){
         this.sessionAuthFilter = sessionAuthFilter;
+        this.jwtAuthFilter = jwtAuthFilter;
     }
 
     @Bean
@@ -47,9 +51,11 @@ public class SecurityConfig {
                 -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT).permitAll()
                         .requestMatchers(SWAGGER_ENDPOINT).permitAll()
                 .anyRequest().authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex
                         -> ex.authenticationEntryPoint(new SessionAuthenticationEntryPoint()))
-                .addFilterBefore(sessionAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // .addFilterBefore(sessionAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         httpSecurity.headers(headers -> headers
                 .addHeaderWriter(new StaticHeadersWriter("Accept-CH",
