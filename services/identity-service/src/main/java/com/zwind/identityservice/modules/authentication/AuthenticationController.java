@@ -1,6 +1,6 @@
 package com.zwind.identityservice.modules.authentication;
 
-import com.zwind.identityservice.dto.response.ApiResponse;
+import com.zwind.common_lib.dto.response.ApiResponse;
 import com.zwind.identityservice.modules.authentication.dto.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

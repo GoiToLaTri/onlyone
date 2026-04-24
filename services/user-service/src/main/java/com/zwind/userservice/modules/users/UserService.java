@@ -9,6 +9,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -34,5 +37,13 @@ public class UserService {
     public UserResponseDto findByAccountId(String id) {
         return userMapper.toUserResponse(userRepository.findByAccountId(id)
                 .orElse(null));
+    }
+
+    public UserResponseDto getInfo() {
+        var context = SecurityContextHolder.getContext();
+        log.info(":::: context: {}", context.toString());
+        return userMapper.toUserResponse(userRepository
+            .findByAccountId(context.getAuthentication().getPrincipal().toString())
+            .orElse(null));
     }
 }

@@ -1,6 +1,6 @@
 package com.zwind.identityservice.exception;
 
-import com.zwind.identityservice.dto.response.ApiResponse;
+import com.zwind.common_lib.dto.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;

@@ -1,6 +1,6 @@
 package com.zwind.identityservice.modules.roles;
 
-import com.zwind.identityservice.dto.response.ApiResponse;
+import com.zwind.common_lib.dto.response.ApiResponse;
 import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
 import com.zwind.identityservice.modules.roles.dto.CreateRoleDto;
 import com.zwind.identityservice.modules.roles.dto.GrantRoleRequestDto;

@@ -1,6 +1,6 @@
 package com.zwind.identityservice.configurations;
 
-import com.zwind.identityservice.dto.response.ApiResponse;
+import com.zwind.common_lib.dto.response.ApiResponse;
 import com.zwind.identityservice.exception.AppError;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

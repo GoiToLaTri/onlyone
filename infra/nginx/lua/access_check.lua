@@ -83,7 +83,7 @@ ngx.req.set_header("X-Request-Nonce", request_id)
 ngx.req.set_header("X-Source-Lang", primary_lang)
 
 -- Kiểm tra riêng cho trường hợp đặc biệt
-if string.match(uri, "^/identityservice/accounts/") and method == "POST" then
+if string.match(uri, "^/identityservice/accounts") and method == "POST" then
     return
 end
 

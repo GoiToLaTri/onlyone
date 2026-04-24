@@ -1,6 +1,6 @@
 package com.zwind.identityservice.modules.permissions;
 
-import com.zwind.identityservice.dto.response.ApiResponse;
+import com.zwind.common_lib.dto.response.ApiResponse;
 import com.zwind.identityservice.modules.permissions.dto.CreatePermissionDto;
 import com.zwind.identityservice.modules.permissions.dto.GrantPermissionRequestDto;
 import com.zwind.identityservice.modules.permissions.dto.PermissionResponseDto;
