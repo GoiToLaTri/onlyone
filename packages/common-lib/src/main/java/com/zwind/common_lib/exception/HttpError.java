@@ -1,20 +1,19 @@
-package com.zwind.identityservice.exception;
+package com.zwind.common_lib.exception;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @AllArgsConstructor
-public enum AppError {
+public enum HttpError {
     FORBIDDEN("FORBIDDEN", "Access denied", HttpStatus.FORBIDDEN),
     SERVER_ERROR("INTERNAL_SERVER_ERROR","Internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
     UNAUTHENTICATED("UNAUTHENTICATED", "Unauthenticated", HttpStatus.UNAUTHORIZED),
     INVALID_KEY("BAD_REQUEST", "Uncategorized error", HttpStatus.BAD_REQUEST),
+    INVALID_CERTIFICATES("BAD_REQUEST", "Invalid certificates", HttpStatus.BAD_REQUEST),
     NAME_REQUIRED("BAD_REQUEST", "Name required", HttpStatus.BAD_REQUEST),
     NAME_INVALID("BAD_REQUEST", "Name invalid", HttpStatus.BAD_REQUEST),
     PASSWORD_REQUIRED("BAD_REQUEST", "Password required", HttpStatus.BAD_REQUEST),
@@ -41,5 +40,5 @@ public enum AppError {
 
     String code;
     String message;
-    HttpStatusCode httpStatusCode;
+    HttpStatus httpStatus;
 }

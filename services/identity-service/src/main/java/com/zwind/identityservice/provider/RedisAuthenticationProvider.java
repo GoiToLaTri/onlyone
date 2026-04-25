@@ -1,9 +1,9 @@
 package com.zwind.identityservice.provider;
 
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
 import com.zwind.grpc_security_starter.interceptors.GrpcAuthenticationProvider;
 import com.zwind.grpc_security_starter.interceptors.GrpcAuthenticationToken;
-import com.zwind.identityservice.exception.AppError;
-import com.zwind.identityservice.exception.AppException;
 import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
 import com.zwind.identityservice.modules.accounts.mapper.AccountMapper;
 import com.zwind.identityservice.modules.accounts.repository.AccountRepository;
@@ -54,7 +54,7 @@ public class RedisAuthenticationProvider implements GrpcAuthenticationProvider {
         if(accountResponseDto == null) {
             accountResponseDto = accountMapper.toAccountResponse(
                     accountRepository.findByIdWithRoles(sessionStage.getAccountId())
-                            .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS))
+                            .orElseThrow(() -> new HttpException(HttpError.USER_NOT_EXISTS))
             );
         }
 

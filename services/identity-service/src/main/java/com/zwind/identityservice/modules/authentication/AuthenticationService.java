@@ -1,26 +1,14 @@
 package com.zwind.identityservice.modules.authentication;
 
-import com.zwind.identityservice.enums.AuthLevel;
-import com.zwind.identityservice.enums.SessionStatus;
-import com.zwind.identityservice.exception.AppError;
-import com.zwind.identityservice.exception.AppException;
-import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
-import com.zwind.identityservice.modules.accounts.entity.Account;
-import com.zwind.identityservice.modules.accounts.mapper.AccountMapper;
-import com.zwind.identityservice.modules.accounts.repository.AccountRepository;
-import com.zwind.identityservice.modules.authentication.dto.*;
-import com.zwind.identityservice.modules.authentication.entity.Session;
-import com.zwind.identityservice.modules.authentication.mapper.SessionMapper;
-import com.zwind.identityservice.modules.authentication.repository.SessionRepository;
-import com.zwind.identityservice.modules.redis.RedisService;
-import com.zwind.identityservice.provider.JwtTokenProvider;
-import com.zwind.identityservice.utils.TokenHashUtil;
-import com.zwind.identityservice.validation.SessionValidator;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,11 +17,33 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
+import com.zwind.identityservice.enums.AuthLevel;
+import com.zwind.identityservice.enums.SessionStatus;
+import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
+import com.zwind.identityservice.modules.accounts.entity.Account;
+import com.zwind.identityservice.modules.accounts.mapper.AccountMapper;
+import com.zwind.identityservice.modules.accounts.repository.AccountRepository;
+import com.zwind.identityservice.modules.authentication.dto.AuthenticationRequestDto;
+import com.zwind.identityservice.modules.authentication.dto.AuthenticationResponseDto;
+import com.zwind.identityservice.modules.authentication.dto.LogoutRequestDto;
+import com.zwind.identityservice.modules.authentication.dto.RefreshTokenRequestDto;
+import com.zwind.identityservice.modules.authentication.dto.SessionResponse;
+import com.zwind.identityservice.modules.authentication.dto.SessionStage;
+import com.zwind.identityservice.modules.authentication.entity.Session;
+import com.zwind.identityservice.modules.authentication.mapper.SessionMapper;
+import com.zwind.identityservice.modules.authentication.repository.SessionRepository;
+import com.zwind.identityservice.modules.redis.RedisService;
+import com.zwind.identityservice.provider.JwtTokenProvider;
+import com.zwind.identityservice.utils.TokenHashUtil;
+import com.zwind.identityservice.validation.SessionValidator;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -54,11 +64,11 @@ public class AuthenticationService {
             HttpServletRequest request
     ) {
         Account account = accountRepository.findByEmail(authenticationRequestDto.getEmail())
-                .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS));
+                .orElseThrow(() -> new HttpException(HttpError.USER_NOT_EXISTS));
 
         boolean authenticated = passwordEncoder.matches(authenticationRequestDto.getPassword(),
                 account.getPassword());
-        if(!authenticated) throw new AppException(AppError.UNAUTHENTICATED);
+        if(!authenticated) throw new HttpException(HttpError.INVALID_CERTIFICATES);
 
         SessionStage session = createSession(account.getId(), request);
         AuthLevel authLevel = AuthLevel.PASSWORD;
@@ -85,14 +95,14 @@ public class AuthenticationService {
 
     public String introspect(String accountId) {
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS));
+                .orElseThrow(() -> new HttpException(HttpError.USER_NOT_EXISTS));
         return jwtTokenProvider.generateToken(account);
     }
 
     public AuthenticationResponseDto refreshToken(RefreshTokenRequestDto requestDto,
                                                   HttpServletRequest request){
         Session currentSession = sessionRepository.findByToken(requestDto.getToken())
-                .orElseThrow(() -> new AppException(AppError.SESSION_NOT_EXISTS));
+                .orElseThrow(() -> new HttpException(HttpError.SESSION_NOT_EXISTS));
 //        Map<String, Object> payload = new HashMap<>();
 
         if(currentSession.isConsumed()) {
@@ -102,7 +112,7 @@ public class AuthenticationService {
 //            payload.put("timestamp", LocalDateTime.now().toString());
 //            rabbitMQProducer.sendMessage(rabbitMQConstantConfig
 //                    .getForceLoggedOutRoutingKey(), payload);
-            throw new AppException(AppError.TOKEN_ALREADY_USED);
+            throw new HttpException(HttpError.TOKEN_ALREADY_USED);
         }
 
         sessionValidator.validateRest(sessionMapper.toSessionStage(currentSession), request);
@@ -162,7 +172,7 @@ public class AuthenticationService {
         if(currentRefreshToken == null)
             currentRefreshToken = sessionRepository
                     .findByTokenAndIsConsumed(requestDto.getRefreshToken(), false)
-                    .orElseThrow(() -> new AppException(AppError.SESSION_NOT_EXISTS));
+                    .orElseThrow(() -> new HttpException(HttpError.SESSION_NOT_EXISTS));
 
         currentRefreshToken.setStatus(SessionStatus.LOGOUT);
         currentRefreshToken.setConsumed(true);

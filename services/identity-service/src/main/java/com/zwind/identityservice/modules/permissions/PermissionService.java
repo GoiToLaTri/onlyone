@@ -1,7 +1,16 @@
 package com.zwind.identityservice.modules.permissions;
 
-import com.zwind.identityservice.exception.AppError;
-import com.zwind.identityservice.exception.AppException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
 import com.zwind.identityservice.modules.permissions.dto.CreatePermissionDto;
 import com.zwind.identityservice.modules.permissions.dto.GrantPermissionRequestDto;
 import com.zwind.identityservice.modules.permissions.dto.PermissionResponseDto;
@@ -11,16 +20,11 @@ import com.zwind.identityservice.modules.permissions.mapper.PermissionMapper;
 import com.zwind.identityservice.modules.permissions.repositiory.PermissionRepository;
 import com.zwind.identityservice.modules.roles.entity.Role;
 import com.zwind.identityservice.modules.roles.repositiory.RoleRepository;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +51,7 @@ public class PermissionService {
     @PreAuthorize("hasRole('ADMIN')")
     public PermissionResponseDto findByName(String name) {
         return permissionMapper.toPermissionResponseDto(permissionRepository.findByName(name).orElseThrow(
-                () -> new AppException(AppError.PERMISSION_NOT_EXISTS)
+                () -> new HttpException(HttpError.PERMISSION_NOT_EXISTS)
         ));
     }
 
@@ -55,7 +59,7 @@ public class PermissionService {
     public PermissionResponseDto findById(String id) {
         return permissionMapper.toPermissionResponseDto(
                 permissionRepository.findById(id).orElseThrow(
-                        () -> new AppException(AppError.PERMISSION_NOT_EXISTS)
+                        () -> new HttpException(HttpError.PERMISSION_NOT_EXISTS)
                 )
         );
     }
@@ -63,7 +67,7 @@ public class PermissionService {
     @PreAuthorize("hasRole('ADMIN')")
     public Role grantPermission(GrantPermissionRequestDto requestDto){
         Role role = roleRepository.findByName(requestDto.getRole())
-                .orElseThrow(() -> new AppException(AppError.ROLE_NOT_EXISTS, requestDto.getRole()));
+                .orElseThrow(() -> new HttpException(HttpError.ROLE_NOT_EXISTS, requestDto.getRole()));
 
         Set<Permission> permissions = new HashSet<>(
                 permissionRepository.findAllByNameIn(requestDto.getPermissions()));
@@ -77,7 +81,7 @@ public class PermissionService {
                     .filter(p -> !existingNames.contains(p))
                     .collect(Collectors.toSet());
 
-            throw new AppException(AppError.PERMISSION_NOT_EXISTS, missingNames.toString());
+            throw new HttpException(HttpError.PERMISSION_NOT_EXISTS, missingNames.toString());
         }
         role.getPermissions().addAll(permissions);
 
@@ -87,7 +91,7 @@ public class PermissionService {
     @PreAuthorize("hasRole('ADMIN')")
     public Role revokePermission(RevokePermissionRequestDto requestDto) {
         Role role = roleRepository.findByName(requestDto.getRole())
-                .orElseThrow(() -> new AppException(AppError.ROLE_NOT_EXISTS));
+                .orElseThrow(() -> new HttpException(HttpError.ROLE_NOT_EXISTS));
 
         Set<String> rolePermissionNames = role.getPermissions().stream().map(
                 Permission::getName).collect(Collectors.toSet());
@@ -99,7 +103,7 @@ public class PermissionService {
                     new HashSet<>(requestPermissions));
             missingPermissions.get().removeAll(rolePermissionNames);
 
-            throw new AppException(AppError.PERMISSION_NOT_EXISTS_IN_ROLE,
+            throw new HttpException(HttpError.PERMISSION_NOT_EXISTS_IN_ROLE,
                     requestPermissions.toString(), role.getName());
         }
 

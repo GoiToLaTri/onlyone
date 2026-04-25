@@ -1,7 +1,8 @@
 package com.zwind.identityservice.configurations;
 
 import com.zwind.common_lib.dto.response.ApiResponse;
-import com.zwind.identityservice.exception.AppError;
+import com.zwind.common_lib.exception.HttpError;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,14 +21,14 @@ public class SessionAuthenticationEntryPoint implements AuthenticationEntryPoint
             HttpServletResponse response,
             @NonNull AuthenticationException authException
     ) throws IOException, ServletException {
-        AppError appError = AppError.UNAUTHENTICATED;
+        HttpError httpError = HttpError.UNAUTHENTICATED;
 
-        response.setStatus(appError.getHttpStatusCode().value());
+        response.setStatus(httpError.getHttpStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         ApiResponse<?> apiResponse = ApiResponse.builder()
-                .code(appError.getCode())
-                .message(appError.getMessage())
+                .code(httpError.getCode())
+                .message(httpError.getMessage())
                 .build();
 
         ObjectMapper objectMapper = new ObjectMapper();

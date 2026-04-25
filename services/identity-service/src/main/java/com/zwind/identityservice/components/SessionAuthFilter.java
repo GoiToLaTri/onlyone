@@ -1,9 +1,9 @@
 package com.zwind.identityservice.components;
 
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
 import com.zwind.identityservice.configurations.SessionAuthentication;
 import com.zwind.identityservice.configurations.SessionPrincipal;
-import com.zwind.identityservice.exception.AppError;
-import com.zwind.identityservice.exception.AppException;
 import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
 import com.zwind.identityservice.modules.accounts.mapper.AccountMapper;
 import com.zwind.identityservice.modules.accounts.repository.AccountRepository;
@@ -85,7 +85,7 @@ public class SessionAuthFilter extends OncePerRequestFilter {
             if(accountResponseDto == null) {
                 accountResponseDto = accountMapper.toAccountResponse(
                         accountRepository.findByIdWithRoles(sessionStage.getAccountId())
-                                .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS))
+                                .orElseThrow(() -> new HttpException(HttpError.USER_NOT_EXISTS))
                 );
 
                 redisService.setKey("AID_" + sessionStage.getAccountId(),
@@ -111,7 +111,7 @@ public class SessionAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (Exception exception){
             log.error(exception.getMessage());
-            throw new AppException(AppError.UNAUTHENTICATED);
+            throw new HttpException(HttpError.UNAUTHENTICATED);
         }
     }
 

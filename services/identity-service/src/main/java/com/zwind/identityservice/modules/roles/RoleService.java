@@ -1,7 +1,17 @@
 package com.zwind.identityservice.modules.roles;
 
-import com.zwind.identityservice.exception.AppError;
-import com.zwind.identityservice.exception.AppException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
 import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
 import com.zwind.identityservice.modules.accounts.entity.Account;
 import com.zwind.identityservice.modules.accounts.mapper.AccountMapper;
@@ -13,20 +23,12 @@ import com.zwind.identityservice.modules.roles.dto.RoleResponseDto;
 import com.zwind.identityservice.modules.roles.entity.Role;
 import com.zwind.identityservice.modules.roles.mapper.RoleMapper;
 import com.zwind.identityservice.modules.roles.repositiory.RoleRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -56,10 +58,10 @@ public class RoleService {
                 .getAuthentication()).getName();
 
         Account account = accountRepository.findById(requestDto.getAccountId())
-                .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS));
+                .orElseThrow(() -> new HttpException(HttpError.USER_NOT_EXISTS));
 
         if(currentAdminID.equals(account.getId()))
-            throw new AppException(AppError.CANNOT_CHANGE_SELF_ROLE);
+            throw new HttpException(HttpError.CANNOT_CHANGE_SELF_ROLE);
 
         Set<Role> roles = new HashSet<>(roleRepository.findAllByNameIn(requestDto.getRoles()));
         if(roles.size() != requestDto.getRoles().size()){
@@ -71,7 +73,7 @@ public class RoleService {
                     .filter(r -> !existRoles.contains(r))
                     .collect(Collectors.toSet());
 
-            throw new AppException(AppError.ROLE_NOT_EXISTS, missingNames.toString());
+            throw new HttpException(HttpError.ROLE_NOT_EXISTS, missingNames.toString());
         }
         account.getRoles().addAll(roles);
 
@@ -85,10 +87,10 @@ public class RoleService {
                 .getAuthentication()).getName();
 
         Account account = accountRepository.findById(requestDto.getAccountId())
-                .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS));
+                .orElseThrow(() -> new HttpException(HttpError.USER_NOT_EXISTS));
 
         if(currentAdminID.equals(account.getId()))
-            throw new AppException(AppError.CANNOT_CHANGE_SELF_ROLE);
+            throw new HttpException(HttpError.CANNOT_CHANGE_SELF_ROLE);
 
         Set<String> roleNames = account.getRoles().stream()
                 .map(Role::getName).collect(Collectors.toSet());
@@ -97,7 +99,7 @@ public class RoleService {
                 .filter(r -> !roleNames.contains(r)).collect(Collectors.toSet());
 
         if(!notExistsRoles.isEmpty())
-            throw new AppException(AppError.USER_NOT_EXISTS_ROLES,
+            throw new HttpException(HttpError.USER_NOT_EXISTS_ROLES,
                     account.getId(), notExistsRoles.toString());
 
         account.getRoles().removeIf(role

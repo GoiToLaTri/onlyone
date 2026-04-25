@@ -1,4 +1,4 @@
-package com.zwind.identityservice.exception;
+package com.zwind.common_lib.exception;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,12 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 @Setter
-public class AppException extends RuntimeException {
-    private final AppError appError;
+public class HttpException extends RuntimeException {
+    private final HttpError httpError;
 
-    public AppException(AppError appError, Object ...args) {
-        super(formatMessage(appError.getMessage(), args));
-        this.appError = appError;
+    public HttpException(HttpError httpError, Object ...args) {
+        super(formatMessage(httpError.getMessage(), args));
+        this.httpError = httpError;
     }
 
     private static String formatMessage(String template, Object... args) {

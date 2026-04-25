@@ -1,12 +1,12 @@
 package com.zwind.identityservice.event.consumer;
 
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
 import com.zwind.identityservice.constant.RabbitMQConstantConfig;
 import com.zwind.identityservice.dto.response.CreateProfileResponse;
 import com.zwind.identityservice.enums.AccountStatus;
 import com.zwind.identityservice.enums.ProfileStatus;
 import com.zwind.identityservice.event.payload.EventPayload;
-import com.zwind.identityservice.exception.AppError;
-import com.zwind.identityservice.exception.AppException;
 import com.zwind.identityservice.modules.accounts.entity.Account;
 import com.zwind.identityservice.modules.accounts.repository.AccountRepository;
 import lombok.AccessLevel;
@@ -32,7 +32,7 @@ public class ProfileEventConsumer {
 
             log.info(":::: data {}", payload.getData());
             Account account = accountRepository.findById(payload.getData().getAccountId())
-                    .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS));
+                    .orElseThrow(() -> new HttpException(HttpError.USER_NOT_EXISTS));
 
             if(ProfileStatus.SUCCESS.equals(payload.getData().getStatus()))
                 account.setAccountStatus(AccountStatus.ACTIVE);

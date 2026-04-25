@@ -1,22 +1,12 @@
 package com.zwind.identityservice.modules.accounts;
 
-import com.zwind.identityservice.constant.RabbitMQConstantConfig;
-import com.zwind.identityservice.enums.AccountStatus;
-import com.zwind.identityservice.event.producer.RabbitMQProducer;
-import com.zwind.identityservice.exception.AppError;
-import com.zwind.identityservice.exception.AppException;
-import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
-import com.zwind.identityservice.modules.accounts.dto.CreateAccountDto;
-import com.zwind.identityservice.modules.accounts.entity.Account;
-import com.zwind.identityservice.modules.accounts.mapper.AccountMapper;
-import com.zwind.identityservice.modules.accounts.repository.AccountRepository;
-import com.zwind.identityservice.modules.redis.RedisService;
-import com.zwind.identityservice.modules.roles.entity.Role;
-import com.zwind.identityservice.modules.roles.repositiory.RoleRepository;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +15,24 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.*;
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
+import com.zwind.identityservice.constant.RabbitMQConstantConfig;
+import com.zwind.identityservice.enums.AccountStatus;
+import com.zwind.identityservice.event.producer.RabbitMQProducer;
+import com.zwind.identityservice.modules.accounts.dto.AccountResponseDto;
+import com.zwind.identityservice.modules.accounts.dto.CreateAccountDto;
+import com.zwind.identityservice.modules.accounts.entity.Account;
+import com.zwind.identityservice.modules.accounts.mapper.AccountMapper;
+import com.zwind.identityservice.modules.accounts.repository.AccountRepository;
+import com.zwind.identityservice.modules.redis.RedisService;
+import com.zwind.identityservice.modules.roles.entity.Role;
+import com.zwind.identityservice.modules.roles.repositiory.RoleRepository;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -50,16 +57,16 @@ public class AccountService {
 
         if(exists != null) {
             if(AccountStatus.ACTIVE.equals(exists.getAccountStatus()))
-                throw new AppException(AppError.USER_EXISTS);
+                throw new HttpException(HttpError.USER_EXISTS);
             else if (AccountStatus.PENDING.equals(exists.getAccountStatus()))
-                throw new AppException(AppError.USER_PENDING);
+                throw new HttpException(HttpError.USER_PENDING);
         }
 
         Account account = accountMapper.toAccount(createAccountDto);
         account.setPassword(passwordEncoder.encode(createAccountDto.getPassword()));
 
         roles.add(roleRepository.findByName("USER").orElseThrow(
-                () -> new AppException(AppError.ROLE_NOT_EXISTS)
+                () -> new HttpException(HttpError.ROLE_NOT_EXISTS)
         ));
 
         account.setRoles(roles);
@@ -85,7 +92,7 @@ public class AccountService {
     @Transactional(readOnly = true)
     public AccountResponseDto findById(String id) {
         return accountMapper.toAccountResponse(accountRepository.findById(id).orElseThrow(
-                () -> new AppException(AppError.USER_NOT_EXISTS)
+                () -> new HttpException(HttpError.USER_NOT_EXISTS)
         ));
     }
 
@@ -97,7 +104,7 @@ public class AccountService {
 
         return accountMapper.toAccountResponse(
                 accountRepository.findById(id)
-                        .orElseThrow(() -> new AppException(AppError.USER_NOT_EXISTS))
+                        .orElseThrow(() -> new HttpException(HttpError.USER_NOT_EXISTS))
         );
     }
 

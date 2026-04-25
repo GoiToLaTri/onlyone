@@ -1,12 +1,13 @@
 package com.zwind.identityservice.interceptors;
 
-import com.zwind.identityservice.exception.AppException;
 import io.grpc.*;
 import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+
+import com.zwind.common_lib.exception.HttpException;
 
 @GrpcGlobalServerInterceptor
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -53,18 +54,18 @@ public class GrpcGlobalExceptionInterceptor implements ServerInterceptor {
             return sre.getStatus();
         }
 
-        if (t instanceof AppException ae) {
-            return switch (ae.getAppError().getCode()) {
+        if (t instanceof HttpException e) {
+            return switch (e.getHttpError().getCode()) {
                 case "UNAUTHENTICATED" ->
-                        Status.UNAUTHENTICATED.withDescription(ae.getMessage());
+                        Status.UNAUTHENTICATED.withDescription(e.getMessage());
                 case "PERMISSION_DENIED" ->
-                        Status.PERMISSION_DENIED.withDescription(ae.getMessage());
+                        Status.PERMISSION_DENIED.withDescription(e.getMessage());
                 case "NOT_FOUND" ->
-                        Status.NOT_FOUND.withDescription(ae.getMessage());
+                        Status.NOT_FOUND.withDescription(e.getMessage());
                 case "INVALID_ARGUMENT" ->
-                        Status.INVALID_ARGUMENT.withDescription(ae.getMessage());
+                        Status.INVALID_ARGUMENT.withDescription(e.getMessage());
                 default ->
-                        Status.INTERNAL.withDescription(ae.getMessage());
+                        Status.INTERNAL.withDescription(e.getMessage());
             };
         }
 

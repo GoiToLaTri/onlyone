@@ -1,6 +1,9 @@
 package com.zwind.identityservice.exception;
 
 import com.zwind.common_lib.dto.response.ApiResponse;
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,47 +20,47 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiResponse<?>> runtimeExceptionHandling(RuntimeException exception) {
         ApiResponse<?> apiResponse = new ApiResponse<>();
 
-        apiResponse.setCode(AppError.SERVER_ERROR.getCode());
-        apiResponse.setMessage(AppError.SERVER_ERROR.getMessage());
+        apiResponse.setCode(HttpError.SERVER_ERROR.getCode());
+        apiResponse.setMessage(HttpError.SERVER_ERROR.getMessage());
 
         log.error(exception.getMessage());
-        return ResponseEntity.status(AppError.SERVER_ERROR.getHttpStatusCode()).body(apiResponse);
+        return ResponseEntity.status(HttpError.SERVER_ERROR.getHttpStatus().value()).body(apiResponse);
     }
 
-    @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse<?>> appExceptionHandling(AppException exception) {
-        AppError appError = exception.getAppError();
+    @ExceptionHandler(value = HttpException.class)
+    ResponseEntity<ApiResponse<?>> appExceptionHandling(HttpException exception) {
+        HttpError httpError = exception.getHttpError();
         ApiResponse<?> apiResponse = new ApiResponse<>();
 
-        apiResponse.setCode(appError.getCode());
+        apiResponse.setCode(httpError.getCode());
         apiResponse.setMessage(exception.getMessage());
 
-        return ResponseEntity.status(appError.getHttpStatusCode()).body(apiResponse);
+        return ResponseEntity.status(httpError.getHttpStatus().value()).body(apiResponse);
     }
 
     @ExceptionHandler(value = AccessDeniedException.class)
     ResponseEntity<ApiResponse<?>> accessDeniedExceptionHandling(AccessDeniedException exception) {
-        AppError appError = AppError.FORBIDDEN;
+        HttpError httpError = HttpError.FORBIDDEN;
         ApiResponse<?> apiResponse = new ApiResponse<>();
 
-        apiResponse.setCode(appError.getCode());
-        apiResponse.setMessage(appError.getMessage());
+        apiResponse.setCode(httpError.getCode());
+        apiResponse.setMessage(httpError.getMessage());
 
-        return ResponseEntity.status(appError.getHttpStatusCode()).body(apiResponse);
+        return ResponseEntity.status(httpError.getHttpStatus().value()).body(apiResponse);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse<?>> validationErrorHandling (MethodArgumentNotValidException exception) {
         String enumKey = Objects.requireNonNull(exception.getFieldError()).getDefaultMessage();
-        AppError appError = AppError.INVALID_KEY;
+        HttpError httpError = HttpError.INVALID_KEY;
         try {
-            appError = AppError.valueOf(enumKey);
+            httpError = HttpError.valueOf(enumKey);
         } catch (IllegalArgumentException e) {}
 
         ApiResponse<?> apiResponse = new ApiResponse<>();
-        apiResponse.setCode(appError.getCode());
-        apiResponse.setMessage(appError.getMessage());
+        apiResponse.setCode(httpError.getCode());
+        apiResponse.setMessage(httpError.getMessage());
 
-        return ResponseEntity.status(appError.getHttpStatusCode()).body(apiResponse);
+        return ResponseEntity.status(httpError.getHttpStatus().value()).body(apiResponse);
     }
 }

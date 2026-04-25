@@ -1,22 +1,24 @@
 package com.zwind.identityservice.validation;
 
+import java.util.Objects;
+
+import org.springframework.stereotype.Component;
+
+import com.zwind.common_lib.exception.HttpError;
+import com.zwind.common_lib.exception.HttpException;
 import com.zwind.identityservice.enums.SessionStatus;
-import com.zwind.identityservice.exception.AppError;
-import com.zwind.identityservice.exception.AppException;
 import com.zwind.identityservice.modules.authentication.dto.SessionStage;
+
 import io.grpc.Metadata;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 @Slf4j
 @Component
 public class SessionValidator {
     public void validateRest(SessionStage session, HttpServletRequest request) {
         if(session.getStatus() != SessionStatus.ACTIVE)
-            throw new AppException(AppError.UNAUTHENTICATED);
+            throw new HttpException(HttpError.UNAUTHENTICATED);
 
         SessionStage.DeviceDetails details = SessionStage.DeviceDetails.builder()
                 .platform(request.getHeader("Sec-CH-UA-Platform"))
@@ -26,12 +28,12 @@ public class SessionValidator {
 
         boolean matchingDevice = matchingDevice(details, session);
         if(!matchingDevice)
-            throw new AppException(AppError.UNAUTHENTICATED);
+            throw new HttpException(HttpError.UNAUTHENTICATED);
     }
 
     public void validateGrpc(SessionStage session, Metadata metadata) {
         if(session.getStatus() != SessionStatus.ACTIVE)
-            throw new AppException(AppError.UNAUTHENTICATED);
+            throw new HttpException(HttpError.UNAUTHENTICATED);
 
         SessionStage.DeviceDetails details = SessionStage.DeviceDetails.builder()
                 .platform(metadata.get(Metadata.Key.of("ua-platform", Metadata.ASCII_STRING_MARSHALLER)))
@@ -41,7 +43,7 @@ public class SessionValidator {
 
         boolean matchingDevice = matchingDevice(details, session);
         if(!matchingDevice)
-            throw new AppException(AppError.UNAUTHENTICATED);
+            throw new HttpException(HttpError.UNAUTHENTICATED);
     }
 
     private boolean matchingDevice(SessionStage.DeviceDetails deviceDetails,
